@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<title>AI Writing Agent — Knowledge Base Architecture</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #F8FAFC;
+  padding: 40px;
+  color: #0F172A;
+}
+
+.page-title {
+  font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0F172A;
+}
+.page-sub {
+  font-size: 12px; color: #94A3B8; margin-bottom: 32px;
+}
+
+.diagram {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+
+/* ── Research sidebar ── */
+.research-sidebar {
+  width: 160px;
+  flex-shrink: 0;
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 42px; /* align with layer content */
+}
+.research-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #94A3B8;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.research-card {
+  background: #F8FAFC;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.research-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 3px;
+}
+.research-card-desc {
+  font-size: 10px;
+  color: #94A3B8;
+  line-height: 1.4;
+}
+.research-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 6px 0;
+  color: #CBD5E1;
+  font-size: 11px;
+}
+.research-feeds {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: #2563EB;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Left spine ── */
+.spine {
+  width: 52px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-right: 20px;
+}
+.spine-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 80px;
+  width: 2px;
+  background: linear-gradient(to top, #2563EB, #0F172A);
+  transform: translateX(-50%);
+}
+.spine-arrow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 12px solid #0F172A;
+}
+.spine-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%) rotate(-90deg);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: #F8FAFC;
+  padding: 3px 8px;
+}
+
+/* ── Layers ── */
+.layers {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.layer {
+  border-radius: 10px;
+  padding: 16px 20px;
+  position: relative;
+}
+
+/* Layer colors — darkest at top, lightest at bottom */
+.l1 { background: #0F172A; }
+.l2 { background: #1E3A5F; }
+.l3 { background: #1D4ED8; }
+.l4 { background: #3B82F6; }
+.l5 { background: #BFDBFE; }
+.l0 { background: #3B0000; border: 2px solid rgba(252,165,165,0.35); }
+
+.layer-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.layer-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.layer-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+.layer-desc {
+  font-size: 11px;
+  opacity: 0.65;
+  margin-left: auto;
+  font-style: italic;
+}
+
+/* Dark layers — white text */
+.l1 .layer-num, .l1 .layer-title, .l1 .layer-desc { color: #fff; }
+.l2 .layer-num, .l2 .layer-title, .l2 .layer-desc { color: #fff; }
+.l3 .layer-num, .l3 .layer-title, .l3 .layer-desc { color: #fff; }
+.l4 .layer-num, .l4 .layer-title, .l4 .layer-desc { color: #fff; }
+.l5 .layer-num, .l5 .layer-title, .l5 .layer-desc { color: #1E3A5F; }
+.l0 .layer-num { color: rgba(252,165,165,0.7); }
+.l0 .layer-title { color: #FCA5A5; }
+.l0 .layer-desc { color: rgba(252,165,165,0.55); }
+.l0 .card { background: rgba(220,38,38,0.22); border-color: rgba(252,165,165,0.3); }
+.l0 .card-title { color: #FCA5A5; }
+.l0 .card-desc { color: rgba(252,165,165,0.72); }
+.override-badge { display:inline-block;background:rgba(220,38,38,0.45);color:#FEE2E2;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;margin-top:5px;letter-spacing:0.4px; }
+.legal-rule-bar { margin-top:10px;padding:8px 12px;background:rgba(220,38,38,0.18);border-left:3px solid rgba(252,165,165,0.6);border-radius:0 6px 6px 0;font-size:11px;color:#FCA5A5;line-height:1.5; }
+.legal-rule-bar strong { color:#FCA5A5; }
+.feedback-loop { margin-top:8px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:7px 12px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:7px;font-size:11px;color:#065F46; }
+.feedback-loop strong { color:#059669; }
+.project-memory { margin-top:6px;padding:10px 14px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:7px;font-size:11px;color:#5B21B6;line-height:1.5; }
+.project-memory strong { color:#5B21B6; }
+
+.cards {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 7px;
+  padding: 10px 14px;
+  min-width: 120px;
+}
+.l5 .card {
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(37,99,235,0.2);
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+}
+.l5 .card-title { color: #1E3A5F; }
+.card-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.4;
+}
+.l5 .card-desc { color: #475569; }
+
+/* Nova special card */
+.card-nova {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 7px;
+  padding: 10px 14px;
+  min-width: 120px;
+  position: relative;
+}
+.card-nova .card-title { color: #fff; }
+.card-nova .card-desc { color: rgba(255,255,255,0.65); }
+.nova-flag {
+  display: inline-block;
+  background: #FDE68A;
+  color: #92400E;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 5px;
+}
+
+/* Escalation card */
+.card-escalation {
+  background: rgba(220,38,38,0.15);
+  border: 1.5px solid rgba(220,38,38,0.5);
+  border-radius: 7px;
+  padding: 10px 14px;
+  min-width: 120px;
+}
+.card-escalation .card-title { color: #FCA5A5; }
+.card-escalation .card-desc { color: rgba(252,165,165,0.8); }
+.escalation-icon {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+/* ── Connector arrow between layers ── */
+.connector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 3px;
+  position: relative;
+}
+
+/* ── Output box ── */
+.output-wrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+.output {
+  background: #ECFDF5;
+  border: 2px solid #059669;
+  border-radius: 10px;
+  padding: 16px 32px;
+  text-align: center;
+  width: 100%;
+}
+.output-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #059669;
+  margin-bottom: 4px;
+}
+.output-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #065F46;
+  margin-bottom: 3px;
+}
+.output-desc {
+  font-size: 11px;
+  color: #059669;
+}
+
+/* ── Output connector ── */
+.output-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+.oc-line {
+  width: 2px;
+  height: 16px;
+  background: #059669;
+}
+.oc-arrow {
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 10px solid #059669;
+}
+
+/* ── Legend ── */
+.legend {
+  margin-top: 28px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.legend-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94A3B8;
+}
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #475569;
+}
+.leg-sw {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Notes panel ── */
+.notes {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 18px 22px;
+}
+.notes h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94A3B8;
+  margin-bottom: 12px;
+}
+.note-item {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+}
+.note-item:last-child { border-bottom: none; }
+.note-num {
+  font-weight: 700;
+  color: #94A3B8;
+  flex-shrink: 0;
+  width: 16px;
+}
+
+</style>
+</head>
+<body>
+
+<p class="page-title">AI Writing Agent — Knowledge Base Architecture</p>
+<p class="page-sub">How the agent layers context to generate on-brand copy · Rough wireframe · March 2026</p>
+
+<div class="diagram">
+
+  <!-- Left spine -->
+  <div class="spine">
+    <div class="spine-line"></div>
+    <div class="spine-arrow"></div>
+    <div class="spine-label">Agent reads up through all layers</div>
+  </div>
+
+  <!-- Layers -->
+  <div class="layers">
+
+    <!-- Layer 0 — Legal & Regulatory (Hard Override) -->
+    <div class="layer l0" style="margin-bottom:6px;">
+      <div class="layer-header">
+        <span class="layer-num">Layer 0</span>
+        <span class="layer-title">Legal &amp; Regulatory Constraints</span>
+        <span class="layer-desc">Hard override — wins against all other layers including Brand Foundation</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Locked Disclosures</div>
+          <div class="card-desc">Verbatim required text — do not simplify or paraphrase</div>
+          <div class="override-badge">LOCKED — do not edit</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Prohibited Phrases</div>
+          <div class="card-desc">FSCA — never use, regardless of context or brand intent</div>
+        </div>
+        <div class="card">
+          <div class="card-title">POPIA Requirements</div>
+          <div class="card-desc">Consent language, data use disclosures, required notices</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Legal Escalation Triggers</div>
+          <div class="card-desc">Fee changes · credit terms · account closure · investment copy · terms changes</div>
+        </div>
+      </div>
+      <div class="legal-rule-bar">
+        <strong>Hard rule:</strong> Legal requirements override all other layers, including Brand Foundation and Bold Simplicity. When legal conflicts with plain language, legal wins. The agent must never simplify locked disclosures. Owner: Legal team — writers do not author this layer, they ensure it stays current.
+      </div>
+    </div>
+
+    <!-- Layer 1 -->
+    <div class="layer l1">
+      <div class="layer-header">
+        <span class="layer-num">Layer 1</span>
+        <span class="layer-title">Brand Foundation</span>
+        <span class="layer-desc">Most foundational — never changes</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Bold Simplicity</div>
+          <div class="card-desc">Core brand principle</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Capitec Values</div>
+          <div class="card-desc">Who we are as a brand</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer 2 -->
+    <div class="layer l2">
+      <div class="layer-header">
+        <span class="layer-num">Layer 2</span>
+        <span class="layer-title">Voice + Service</span>
+        <span class="layer-desc">How Capitec sounds and shows up</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Capitec Fundamentals</div>
+          <div class="card-desc">Brand voice definition</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Brand Personality</div>
+          <div class="card-desc">Tone attributes and character</div>
+        </div>
+        <div class="card" style="border-color:rgba(253,230,138,0.6);background:rgba(253,230,138,0.15);">
+          <div class="card-title" style="color:#FDE68A;">Servicing Principles</div>
+          <div class="card-desc">How Capitec shows up in service moments — acknowledge before explain, never blame, simplify under stress</div>
+          <div style="margin-top:6px;font-size:9px;background:rgba(245,158,11,0.3);color:#FEF3C7;padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">⚠ MD to retrieve — check with CX</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer 3 -->
+    <div class="layer l3">
+      <div class="layer-header">
+        <span class="layer-num">Layer 3</span>
+        <span class="layer-title">Craft + Tone</span>
+        <span class="layer-desc">How we write — principles and tone guidance for four emotional states</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Writing Principles</div>
+          <div class="card-desc">Clarity · brevity · active voice · plain language · one idea per sentence</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Tone Guidance</div>
+          <div class="card-desc">Four emotional states — error/failure · success · instructional · sensitive/urgent</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">Replaces full tone matrix for T1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer 4 -->
+    <div class="layer l4">
+      <div class="layer-header">
+        <span class="layer-num">Layer 4</span>
+        <span class="layer-title">Channel Context</span>
+        <span class="layer-desc">UI context, real estate, and copy constraints per channel — not audience personalisation</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">App</div>
+          <div class="card-desc">Mobile · character limits apply · limited real estate · self-service · no SE present · async</div>
+        </div>
+        <div class="card-nova">
+          <div class="card-title">Nova</div>
+          <div class="card-desc">Desktop · large real estate · SE-facilitated · more copy space available</div>
+          <div class="nova-flag">⚠ SE-facing ≠ client-facing<br>Two distinct registers — must be explicit in MD</div>
+        </div>
+        <div class="card">
+          <div class="card-title">ATM</div>
+          <div class="card-desc">Short TOT · public environment (security pressure) · no SE · copy must be instant to read and act on</div>
+        </div>
+        <div class="card" style="opacity:0.6;">
+          <div class="card-title">POS</div>
+          <div class="card-desc">Counter interaction · SE present · brief, confident copy</div>
+          <div style="margin-top:5px;display:inline-block;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;">T2 scope</div>
+        </div>
+        <div class="card" style="opacity:0.6;">
+          <div class="card-title">Salesforce</div>
+          <div class="card-desc">Internal tool · SE-facing only</div>
+          <div style="margin-top:5px;display:inline-block;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;">T2 scope</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer 5 -->
+    <div class="layer l5">
+      <div class="layer-header">
+        <span class="layer-num">Layer 5</span>
+        <span class="layer-title">Use Case Rules</span>
+        <span class="layer-desc">Most specific — component and screen level</span>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Error Messages</div>
+          <div class="card-desc">Tone, principles + embedded good/bad examples</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">T1 · Priority 1</div>
+        </div>
+        <div class="card">
+          <div class="card-title">CTAs + Labels</div>
+          <div class="card-desc">Buttons, nav, form fields + embedded good/bad examples</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">T1 · Priority 2</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Sensitive Moments</div>
+          <div class="card-desc">Fraud · payment failures · account problems + embedded examples</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">T1 · Priority 3</div>
+        </div>
+        <div class="card-escalation">
+          <div class="card-title"><span class="escalation-icon">⚠</span>Escalation Rules</div>
+          <div class="card-desc">What always requires<br>human writer review</div>
+        </div>
+        <div class="card" style="opacity:0.75;">
+          <div class="card-title">Onboarding Copy</div>
+          <div class="card-desc">Walkthroughs · product explanations</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.75);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">T1 if time allows</div>
+        </div>
+        <div class="card" style="opacity:0.75;">
+          <div class="card-title">Maze Test Copy</div>
+          <div class="card-desc">Welcome screen · task instructions · thank-you copy</div>
+          <div style="margin-top:5px;font-size:9px;background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.75);padding:2px 6px;border-radius:3px;display:inline-block;font-weight:700;">T1 if time allows</div>
+        </div>
+        <div class="card" style="background:rgba(255,255,255,0.4);border:1.5px dashed rgba(37,99,235,0.3);opacity:0.7;">
+          <div class="card-title" style="color:#1E3A5F;">Research &amp; Test Questions</div>
+          <div class="card-desc" style="color:#475569;">Non-leading · plain language · question quality rules</div>
+          <div style="margin-top:5px;display:inline-block;background:#F1F5F9;color:#64748B;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;">T2+ · Future scope</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output connector -->
+    <div class="output-connector">
+      <div class="oc-line"></div>
+      <div class="oc-arrow"></div>
+    </div>
+
+    <!-- Output -->
+    <div class="output">
+      <div class="output-label">Output</div>
+      <div class="output-title">Agent generates copy using full context stack</div>
+      <div class="output-desc">Brand · Voice · Craft · Channel · Use case — all layers applied simultaneously</div>
+      <div style="margin-top:8px;font-size:11px;color:#059669;">Every output includes a review status: <strong>CLEAR</strong> or <strong style="color:#DC2626;">REVIEW REQUIRED: [reason]</strong></div>
+    </div>
+
+    <!-- Feedback loop -->
+    <div class="feedback-loop">
+      <span style="font-size:16px;">&#8617;</span>
+      <span><strong>KB maintenance loop</strong> — output quality feeds back into Layers 4 &amp; 5. Writers own this cadence. Without it, the agent degrades silently.</span>
+    </div>
+
+    <!-- Project memory requirement -->
+    <div class="project-memory">
+      <strong>Requirement: Project context memory</strong><br>
+      The agent must remember project context across sessions. A designer feeds a brief once — channel, product, audience, key messages — and the agent recalls it weeks or months later. Pick up where you left off without re-briefing. This is a confirmed product requirement, not an assumption. Must be configured and tested during Phase 2 build.
+    </div>
+
+  </div>
+
+  <!-- Research & Context sidebar -->
+  <div class="research-sidebar">
+    <div class="research-header">Two tools · one KB</div>
+    <div class="research-card" style="border-color:#DDD6FE;background:#F5F3FF;">
+      <div class="research-card-title" style="color:#5B21B6;">Copilot Studio agent</div>
+      <div class="research-card-desc">Write + review copy · guided briefing template · escalation triggers</div>
+    </div>
+    <div class="research-arrow" style="color:#7C3AED;">↕</div>
+    <div class="research-card" style="border-color:#DDD6FE;background:#F5F3FF;">
+      <div class="research-card-title" style="color:#5B21B6;">Figma plugin — assess</div>
+      <div class="research-card-desc">Layered checks on active frame · UI → UX → Copy · flags issues</div>
+    </div>
+    <div class="research-card" style="border-color:#DDD6FE;background:#F5F3FF;margin-top:4px;">
+      <div class="research-card-title" style="color:#5B21B6;">Figma plugin — extract</div>
+      <div class="research-card-desc">Pulls all copy from a screen · sends to writing agent for review or rewrite</div>
+    </div>
+    <div class="research-arrow">↓</div>
+    <div class="research-feeds" style="background:#F5F3FF;border-color:#DDD6FE;color:#5B21B6;">Shared SharePoint KB</div>
+    <div style="margin-top:8px;font-size:10px;color:#94A3B8;text-align:center;line-height:1.5;">One source of truth —<br>writers update once,<br>both tools update</div>
+    <div style="margin-top:10px;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:6px;padding:8px 10px;font-size:10px;color:#64748B;line-height:1.4;">
+      <strong>Future state:</strong> Client segments, personas, mental models — channels cannot yet accommodate this level of personalisation. Revisit in T2+.
+    </div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-title">Key</span>
+  <div class="leg-item">
+    <div class="leg-sw" style="background:#0F172A"></div>
+    Most foundational — least likely to change
+  </div>
+  <div class="leg-item">
+    <div class="leg-sw" style="background:#BFDBFE;border:1px solid #93C5FD"></div>
+    Most specific — most likely to be updated
+  </div>
+  <div class="leg-item">
+    <div class="leg-sw" style="background:#FDE68A;border:1px solid #F59E0B"></div>
+    Requires special handling or split context
+  </div>
+  <div class="leg-item">
+    <div class="leg-sw" style="background:rgba(220,38,38,0.15);border:1.5px solid rgba(220,38,38,0.5)"></div>
+    Escalation — always requires human writer review
+  </div>
+  <div class="leg-item">
+    <div class="leg-sw" style="background:#3B0000;border:2px solid rgba(252,165,165,0.35)"></div>
+    Layer 0 — legal hard override, wins against all layers
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="notes">
+  <h3>How to read this</h3>
+  <div class="note-item">
+    <span class="note-num">1</span>
+    <span>The agent starts at Layer 5 (the specific use case) and reads up through every layer above it. A Nova error message gets: error message rules + Nova channel rules + tone matrix + servicing principles + Capitec voice + brand foundation — all at once.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">2</span>
+    <span>Upper layers override lower layers when there is a conflict — <strong>except Layer 0 (Legal)</strong>. Legal and regulatory requirements override all other layers, including Brand Foundation and Bold Simplicity. This is a hard rule, not a tone judgment. Legal copy must never be simplified into non-compliance. Within Layers 1–5, Brand Foundation wins.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">3</span>
+    <span>Nova (Layer 4) has a split context — client-facing screens follow App-like rules, SE-facing screens follow a different register. This must be explicit in the Nova MD file or the agent will average the two and be wrong for both.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">4</span>
+    <span>Escalation rules (Layer 5) flag output that must not ship without a human writer reviewing it — sensitive moments, legal copy, new product launches. These are non-negotiable checkpoints regardless of output quality.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">5</span>
+    <span>The knowledge base is only as good as the content in each layer. Layers 1–3 are foundational and stable. Layers 4–5 need regular writer-led maintenance as products and channels evolve.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">6</span>
+    <span><strong>Servicing Principles (Layer 2):</strong> The CX head has flagged these as required inputs. An MD file exists — retrieve, review, and validate before adding to the KB. Owner: Louise. Without this layer, the agent can produce technically correct copy that violates Capitec's service commitments.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">7</span>
+    <span><strong>Segments and personas are out of T1 scope.</strong> Channels cannot yet accommodate that level of personalisation. Layer 4 focuses on UI constraints and contextual rules instead — character limits, real estate, time on task, SE presence. This is more reliable and easier to codify than audience personalisation. Segments and personas can be added to the architecture in T2 once the base agent is proven.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">12</span>
+    <span><strong>Layer 3 is intentionally simplified for T1.</strong> The full tone matrix — product × journey stage × emotional moment — has been replaced with four emotional states (error/failure, success, instructional, sensitive/urgent). This covers 90% of what designers encounter and is far faster to build and more reliably applied by the agent. Good vs bad examples are embedded directly into each Layer 5 use case file rather than maintained as a separate document. Both decisions can be revisited in T2 once the agent is live and generating real output data that reveals where more nuance is needed.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">8</span>
+    <span><strong>Legal vs Bold Simplicity — this conflict is real and must be named.</strong> Legal copy often conflicts directly with Bold Simplicity. The agent cannot resolve this on its own — it will default to simplifying, which risks non-compliance. Layer 0 is the explicit resolution: legal wins, every time. Locked disclosures must appear verbatim. The agent flags any output containing locked legal text for writer + legal review before shipping.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">9</span>
+    <span><strong>What Nathan already has (confirmed 2026-03-30):</strong> Nathan has a working Copilot Studio agent that brand copywriters are currently using. His KB already contains: Layer 0 (legal &amp; compliance), Layer 1 (brand), and Layer 2 (servicing — needs sense-checking for scope and accuracy). He has also uploaded UX writing principles. He is actively investigating Copilot Studio's native trigger capabilities for bringing writers into the loop automatically — this aligns directly with the escalation requirement. Priority: review and validate his existing layers before building anything new. Do not duplicate work.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">9</span>
+    <span><strong>How this runs in Copilot Studio (T1 technical approach):</strong> Layers 0–3 plus escalation rules are always loaded via the system prompt. Layer 4 (channel) and Layer 5 (use case) files live in SharePoint and are retrieved automatically — designers never paste MD files. When a designer opens the agent, a built-in briefing template guides them: channel, copy type, what to communicate, constraints. The agent only generates after collecting all four. When the agent outputs REVIEW REQUIRED, a Power Automate flow automatically messages the relevant writer in Teams and confirms to the designer. Leon owns the technical configuration.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">11</span>
+    <span><strong>Two tools, one knowledge base.</strong> The Copilot Studio writing agent (generate + review) and the Figma plugin (layered assessment: UI checks → UX checks → copy checks) both reference the same SharePoint MD files. When a writer updates an MD file, both tools update automatically. The Figma plugin is Phase 2 scope. Its copy check layer calls the same underlying agent as the writing tool — just in assessment mode, not generation mode. One KB, two interfaces, one escalation flow.</span>
+  </div>
+  <div class="note-item">
+    <span class="note-num">10</span>
+    <span><strong>T1 channels: App, Nova, ATM. T2: POS, Salesforce.</strong> App and Nova are the primary T1 build. ATM is included in T1 because its constraints are clear and distinct (very limited real estate, short TOT, time pressure). POS and Salesforce Layer 4 files do not exist yet — they must not be referenced by the agent until they do.</span>
+  </div>
+</div>
+
+</body>
+</html>

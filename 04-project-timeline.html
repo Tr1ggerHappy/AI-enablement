@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<title>AI Writing Agent — Project Timeline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F8FAFC;--surface:#fff;--border:#E2E8F0;--border-mid:#CBD5E1;
+  --t1:#0F172A;--t2:#475569;--t3:#94A3B8;
+  --blue:#2563EB;--blue-bg:#EFF6FF;--blue-mid:#BFDBFE;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;--purple-mid:#DDD6FE;
+  --green:#059669;--green-bg:#ECFDF5;--green-mid:#A7F3D0;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-mid:#FECACA;
+  --amber:#D97706;--amber-bg:#FFFBEB;--amber-mid:#FDE68A;
+  --ink:#0F172A;--r:10px;
+  --sh:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --sh-md:0 4px 16px rgba(0,0,0,0.10);
+}
+body{font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--t1);font-size:13px;line-height:1.5;}
+
+/* ── Top bar ── */
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.topbar-left{display:flex;align-items:baseline;gap:12px;}
+.topbar-title{font-size:14px;font-weight:700;letter-spacing:-0.2px;}
+.topbar-sub{font-size:11px;color:rgba(255,255,255,0.4);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.tb-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.tb-date{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);}
+.tb-late{background:rgba(220,38,38,0.25);color:#FCA5A5;}
+.tb-now{background:rgba(217,119,6,0.25);color:#FDE68A;}
+.tb-good{background:rgba(5,150,105,0.25);color:#6EE7B7;}
+.ctx-toggle{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;margin-left:4px;}
+.ctx-toggle:hover{background:rgba(255,255,255,0.14);color:#fff;}
+
+/* ── Page ── */
+.page{padding:20px 24px 48px;}
+
+/* ── Context panel ── */
+.ctx-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;overflow:hidden;transition:max-height 0.3s ease,opacity 0.2s ease,margin 0.2s ease;max-height:600px;opacity:1;}
+.ctx-panel.collapsed{max-height:0;opacity:0;margin-bottom:0;}
+.ctx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);}
+.ctx-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:8px;}
+.ctx-about{font-size:12.5px;color:var(--t2);line-height:1.6;}
+.ctx-about strong{color:var(--t1);font-weight:600;}
+.decisions-card{border-left:3px solid var(--red);background:#FFFAFA;}
+.decisions-card .ctx-card-title{color:var(--red);}
+.decision-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #FEE2E2;align-items:flex-start;}
+.decision-item:last-child{border-bottom:none;padding-bottom:0;}
+.di-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.di-text{font-size:12px;color:var(--t2);line-height:1.5;}
+.di-text strong{color:var(--t1);}
+
+/* ── Goals ── */
+.goals-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:16px;}
+.goals-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--t3);margin-right:4px;}
+.goal-chip{font-size:11px;color:var(--t2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;box-shadow:var(--sh);}
+
+/* ── Phase stats ── */
+.phase-stats{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.phase-stat{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:10px 16px;box-shadow:var(--sh);cursor:pointer;transition:all 0.15s;min-width:200px;}
+.phase-stat:hover{border-color:var(--border-mid);box-shadow:var(--sh-md);}
+.phase-stat.active{border-color:var(--ink);}
+.ps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ps-info{flex:1;}
+.ps-label{font-size:12px;font-weight:700;color:var(--t1);}
+.ps-count{font-size:10px;color:var(--t3);margin-top:1px;}
+.ps-bar{width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.ps-fill{height:100%;border-radius:2px;transition:width 0.4s;}
+
+/* ── Controls ── */
+.controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap;}
+.controls-left{display:flex;align-items:center;gap:8px;}
+.filter-tabs{display:flex;gap:4px;}
+.ft{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--t2);cursor:pointer;font-family:inherit;transition:all 0.1s;}
+.ft:hover{border-color:var(--border-mid);color:var(--t1);}
+.ft.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.hide-btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--t2);cursor:pointer;font-family:inherit;transition:all 0.1s;display:flex;align-items:center;gap:5px;}
+.hide-btn:hover{border-color:var(--border-mid);color:var(--t1);}
+.hide-btn.active{background:var(--green-bg);color:var(--green);border-color:var(--green-mid);}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);}
+.leg-sw{width:18px;height:8px;border-radius:3px;flex-shrink:0;}
+.leg-line{width:18px;height:0;border-top:2px dashed var(--red);flex-shrink:0;}
+.leg-t2l{width:18px;height:0;border-top:2.5px solid var(--amber);flex-shrink:0;}
+
+/* ── Gantt ── */
+.gantt-wrap{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);overflow-x:auto;box-shadow:var(--sh);user-select:none;}
+table{border-collapse:collapse;min-width:1120px;width:100%;}
+
+/* Header rows */
+.month-row th{background:var(--ink);color:#fff;font-size:10px;font-weight:600;text-align:center;padding:9px 0;letter-spacing:0.5px;}
+.month-row th.lc{text-align:left;padding-left:16px;font-size:12px;font-weight:700;width:300px;min-width:300px;position:sticky;left:0;z-index:4;background:var(--ink);}
+.month-row th.t2m{background:#1E293B;border-left:2px solid var(--amber);}
+.week-row th{font-size:9px;color:var(--t3);font-weight:500;text-align:center;padding:5px 0;background:var(--bg);border-bottom:1px solid var(--border);}
+.week-row th.lc{text-align:left;padding-left:16px;font-size:11px;color:var(--t2);font-weight:700;border-right:1px solid var(--border);position:sticky;left:0;z-index:4;background:var(--bg);}
+.week-row th.t2w{background:#F1F5F9;color:#CBD5E1;}
+.week-row th.t1h{border-right:2px solid var(--red)!important;color:var(--red)!important;background:#FFF8F8!important;}
+
+/* Marker row */
+.mark-row td{padding:2px 0;border-bottom:2px solid var(--border);font-size:8px;font-weight:800;text-align:center;letter-spacing:0.3px;}
+.mark-row td.lc{position:sticky;left:0;z-index:4;background:var(--surface);border-right:1px solid var(--border);}
+.mark-row td.t1m{color:var(--red);background:rgba(220,38,38,0.04);border-right:2px solid var(--red);}
+.mark-row td.t2m{color:var(--amber);background:rgba(217,119,6,0.07);border-left:2px solid var(--amber);}
+.mark-row td.t2b{background:rgba(217,119,6,0.015);}
+
+/* Section rows */
+.sec-row td{font-size:11px;font-weight:700;padding:10px 16px;border-top:2px solid;border-bottom:1px solid;}
+.sec-row td.lc{position:sticky;left:0;z-index:3;}
+.s-p1 td{background:var(--blue-bg);color:#1D4ED8;border-top-color:var(--blue-mid);border-bottom-color:#DBEAFE;}
+.s-p2 td{background:var(--purple-bg);color:#5B21B6;border-top-color:var(--purple-mid);border-bottom-color:#EDE9FE;}
+.s-p3 td{background:var(--green-bg);color:#065F46;border-top:3px solid var(--amber);border-bottom-color:var(--green-mid);}
+
+/* Task rows */
+.task-row{height:40px;}
+.task-row:nth-child(even) td.wc{background:#FAFBFC;}
+.task-row:hover td{background:#F1F5F9!important;}
+.task-row:hover td.lc{background:#F1F5F9!important;}
+
+/* Done row treatment */
+.task-row.is-done td.wc,.task-row.is-hold td.wc{background:#FAFAFA!important;}
+.task-row.is-done:nth-child(even) td.wc,.task-row.is-hold:nth-child(even) td.wc{background:#F7F8F9!important;}
+.task-row.is-done:hover td,.task-row.is-hold:hover td{background:#F1F5F9!important;}
+.task-row.is-hold .bar-fill{opacity:0.5;}
+
+/* Flag border on label cell */
+.task-row.fl-late td.lc{border-left:3px solid var(--red);}
+.task-row.fl-now  td.lc{border-left:3px solid var(--amber);}
+.task-row.fl-soon td.lc{border-left:3px solid var(--blue);}
+
+/* Hide completed */
+.hide-done .task-row.is-done{display:none;}
+
+/* Label cell */
+.task-row td.lc{font-size:12.5px;color:var(--t1);padding:0 10px 0 14px;border-right:1px solid var(--border);white-space:nowrap;vertical-align:middle;min-width:320px;width:320px;position:sticky;left:0;z-index:2;background:var(--surface);transition:background 0.1s;}
+.task-row td.lc.dim{color:var(--t3);}
+.label-inner{display:flex;align-items:center;width:100%;gap:0;}
+.label-text{flex:1;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.task-row.is-done .label-text{text-decoration:line-through;color:var(--t3);}
+
+/* Status control — pill button, always shows current state */
+.status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:20px;cursor:pointer;
+  font-size:10px;font-weight:700;flex-shrink:0;margin-right:6px;
+  border:1.5px solid transparent;transition:all 0.12s;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.status-pill:hover{opacity:0.8;transform:scale(1.04);}
+.status-pill:active{transform:scale(0.97);}
+.sp-none{background:#F1F5F9;color:#94A3B8;border-color:#E2E8F0;}
+.sp-prog{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-mid);}
+.sp-done{background:var(--green-bg);color:var(--green);border-color:var(--green-mid);}
+.sp-hold{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-mid);}
+.sp-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+@keyframes pill-pulse{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+.status-pill.pulsed{animation:pill-pulse 0.2s ease;}
+
+/* Hold undo button — always visible when on hold */
+.undo-hold{
+  display:none;font-size:10px;font-weight:700;
+  color:var(--amber);background:var(--amber-bg);
+  border:1px solid var(--amber-mid);border-radius:5px;
+  padding:2px 7px;cursor:pointer;flex-shrink:0;margin-right:4px;
+  font-family:inherit;transition:all 0.1s;
+}
+.task-row.is-hold .undo-hold{display:inline-flex;align-items:center;gap:3px;}
+.undo-hold:hover{background:var(--amber-mid);}
+
+.d-done{background:var(--green);}
+.d-prog{background:var(--blue);}
+.d-none{background:#CBD5E1;}
+.d-hold{background:var(--amber);}
+@keyframes pulse-dot{0%{transform:scale(1)}40%{transform:scale(2)}100%{transform:scale(1)}}
+.tb-saved{background:rgba(5,150,105,0.2);color:#6EE7B7;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;transition:opacity 0.3s;}
+
+/* AI badge */
+.ai-badge{display:inline-flex;align-items:center;background:var(--amber-bg);color:#92400E;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;cursor:pointer;border:1px solid var(--amber-mid);transition:all 0.1s;flex-shrink:0;}
+.ai-badge:hover{background:var(--amber-mid);}
+
+/* Row flag icon */
+.row-flag{font-size:10px;margin-left:5px;flex-shrink:0;}
+
+/* Row actions */
+.row-actions{display:none;align-items:center;gap:2px;margin-left:5px;flex-shrink:0;}
+.task-row:hover .row-actions{display:flex;}
+.row-btn{background:none;border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--t3);cursor:pointer;padding:1px 5px;font-family:inherit;line-height:1.5;transition:all 0.1s;}
+.row-btn:hover{background:var(--border);color:var(--t1);}
+.row-btn.del:hover{background:var(--red-bg);color:var(--red);border-color:var(--red-mid);}
+
+/* Week cells */
+.task-row td.wc{vertical-align:middle;padding:7px 1px;border-right:1px solid #F1F5F9;transition:background 0.1s;}
+.task-row td.t1c{background:rgba(220,38,38,0.025)!important;border-right:2px solid var(--red)!important;}
+.task-row td.t2c{background:rgba(217,119,6,0.015);border-right:1px solid #FEF3C7;}
+.task-row td.t2f{border-left:2px solid var(--amber);}
+.task-row td.today-wc{background:rgba(217,119,6,0.05)!important;}
+
+/* Bars */
+.bar-wrap{position:relative;height:22px;margin:0 1px;border-radius:5px;}
+.bar-fill{position:absolute;inset:0;border-radius:inherit;}
+.bar-wrap.dragging .bar-fill{opacity:0.7;}
+.bar-handle{position:absolute;top:0;width:7px;height:100%;cursor:ew-resize;z-index:2;background:rgba(255,255,255,0.2);border-radius:inherit;}
+.bar-handle.hl{left:0;border-radius:5px 0 0 5px;}
+.bar-handle.hr{right:0;border-radius:0 5px 5px 0;}
+.bar-mid{position:absolute;inset:0 7px;cursor:grab;z-index:1;}
+.bar-mid:active{cursor:grabbing;}
+.bar-solo .bar-mid{inset:0;}
+.bar-solo .bar-handle{display:none;}
+
+/* Done bars are dimmed */
+.task-row.is-done .bar-fill{opacity:0.45;}
+
+/* Add task */
+.add-row td{border-bottom:1px solid #F1F5F9;}
+.add-btn{display:inline-flex;align-items:center;gap:4px;margin:4px 14px;font-size:11px;color:var(--t3);cursor:pointer;padding:3px 8px;border:1px dashed var(--border);border-radius:5px;transition:all 0.1s;}
+.add-btn:hover{color:var(--t1);border-color:var(--border-mid);background:var(--bg);}
+
+/* Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:14px;padding:26px;width:420px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);position:relative;border:1px solid var(--border);}
+.modal-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:20px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:16px;color:var(--t3);cursor:pointer;padding:4px 7px;border-radius:6px;font-family:inherit;}
+.modal-close:hover{background:var(--border);color:var(--t1);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:10px;font-weight:700;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.field input[type=text],.field select{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;outline:none;color:var(--t1);background:var(--surface);transition:border 0.15s;}
+.field input[type=text]:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.phase-picker{display:flex;gap:7px;flex-wrap:wrap;}
+.phase-opt{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);padding:5px 11px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;transition:all 0.1s;}
+.phase-opt:hover{border-color:var(--border-mid);}
+.phase-opt.selected{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
+.phase-dot{width:9px;height:9px;border-radius:50%;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
+.btn-save{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600;transition:background 0.1s;}
+.btn-save:hover{background:#1E293B;}
+.btn-cancel{background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer;color:var(--t2);}
+.btn-cancel:hover{background:var(--bg);}
+
+/* AI modal */
+.ai-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#92400E;background:#FEF3C7;padding:3px 8px;border-radius:5px;display:inline-block;margin-bottom:8px;}
+.ai-modal-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:16px;line-height:1.4;}
+.ai-tool{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.ai-tool:last-child{border-bottom:none;padding-bottom:0;}
+.tool-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.pill-claude{background:#EDE9FE;color:#5B21B6;}
+.pill-chatgpt{background:#DCFCE7;color:#166534;}
+.pill-figjam{background:#FFF7ED;color:#C2410C;}
+.pill-figma{background:#FFF1F2;color:#BE123C;}
+.pill-copilot{background:#DCFCE7;color:#166534;}
+.pill-maze{background:#FEF3C7;color:#92400E;}
+.pill-powerauto{background:#E0F2FE;color:#0369A1;}
+.tool-how{font-size:12px;color:var(--t2);line-height:1.55;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">AI Writing Agent</span>
+    <span class="topbar-sub">T1 · March 20 – June 27, 2026 &nbsp;·&nbsp; T2 preview: July onwards</span>
+  </div>
+  <div class="topbar-right" id="topbar-status"></div>
+  <span class="tb-saved" id="save-chip" style="opacity:0.5;margin-left:4px;"></span>
+</header>
+
+<div class="page">
+
+  <div class="ctx-panel" id="ctx-panel">
+    <div class="ctx-card">
+      <div class="ctx-card-title">About this project</div>
+      <p class="ctx-about">We are building an <strong>AI-enabled UX writing capability</strong> that helps product design teams create and assess on-brand copy at scale, while protecting quality through clear standards and governance. The agent does not replace writers. It applies their standards, handles volume, and flags work that needs human review.<br><br><strong>Platform:</strong> Copilot Studio (confirmed) · <strong>KB:</strong> 10–12 SharePoint MD files · <strong>T1 channels:</strong> App, Nova, ATM · <strong>Access:</strong> Teams · Figma plugin T2 · <strong>Key requirement:</strong> Project context memory — agent remembers project brief across sessions. <strong>Phase 1 exit condition:</strong> All KB files complete, agent configured, Layer 0 signed off by legal, basic test passing.</p>
+    </div>
+    <div class="ctx-card decisions-card">
+      <div class="ctx-card-title">Decisions needed before this goes live</div>
+      <div class="decision-item"><span class="di-icon">⚠</span><div class="di-text"><strong>Writer ownership at exec level</strong> — Writers own copy the same way BAs own business rules and designers own UX flows. View-only access is not involvement. Needs Rod &amp; Dominic alignment.</div></div>
+      <div class="decision-item"><span class="di-icon">⚠</span><div class="di-text"><strong>AI-modified copy is new copy</strong> — If a designer changes writer-approved copy with AI, the sign-off no longer applies. Writers should produce and modify copy using the agent — not designers working around them.</div></div>
+      <div class="decision-item"><span class="di-icon">⚠</span><div class="di-text"><strong>Governance for writer-less channels</strong> — The immediate need is in channels without dedicated writers. Who owns quality sign-off there? Must be resolved before scaling beyond App and Nova.</div></div>
+      <div class="decision-item"><span class="di-icon">→</span><div class="di-text"><strong>Future consideration: Research &amp; test question quality</strong> — Using the agent to draft test plans and review Maze/survey questions for plain language and leading bias. Maze test copy (welcome, task, thank-you screens) is in scope for T1. The question quality playbook is T2+ — it requires research methodology expertise to author correctly and a proven agent before adding scope.</div></div>
+      <div class="decision-item"><span class="di-icon">✓</span><div class="di-text"><strong>Platform decision — Nathan's new Copilot agent confirmed as T1 platform (April 2026).</strong> Previous agent discontinued due to quality gaps. New agent released and ready for evaluation. André is now the branch team UX manager and product stakeholder for the experiment — not building the agent. Figma copy extraction plugin available for use in the test workflow. Branch team experiment is the next phase.</div></div>
+    </div>
+  </div>
+
+  <div class="goals-strip">
+    <span class="goals-label">Goals</span>
+    <span class="goal-chip">Designers consistently use the agent</span>
+    <span class="goal-chip">Designers create first drafts using the agent</span>
+    <span class="goal-chip">High-stakes copy reliably escalated to writers</span>
+    <span class="goal-chip">Writers have more time at wireframe stage</span>
+    <span class="goal-chip">Knowledge base regularly updated</span>
+    <span class="goal-chip">Maze test copy strong with minimal writer input</span>
+    <span class="goal-chip">Copy quality consistent across all squads</span>
+  </div>
+
+  <div class="phase-stats" id="phase-stats"></div>
+
+  <div class="controls">
+    <div class="controls-left">
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="ft active" data-filter="all">All phases</button>
+        <button class="ft" data-filter="p1">Phase 1</button>
+        <button class="ft" data-filter="p2">Phase 2</button>
+        <button class="ft" data-filter="p3">Phase 3</button>
+      </div>
+      <button class="hide-btn" id="hide-btn" onclick="toggleHideDone()">
+        <span id="hide-icon">○</span> Hide completed
+      </button>
+      <button class="hide-btn" onclick="resetState()" title="Clear all saved changes and reset to default" style="color:var(--t3);font-size:11px;">↺ Reset</button>
+    </div>
+    <div class="legend">
+      <div class="leg"><span class="sdot d-done" style="width:9px;height:9px;margin:0"></span>Done</div>
+      <div class="leg"><span class="sdot d-prog" style="width:9px;height:9px;margin:0"></span>In progress</div>
+      <div class="leg"><span class="sdot d-none" style="width:9px;height:9px;margin:0"></span>Not started</div>
+      <div class="leg"><div class="leg-sw" style="background:var(--red);opacity:0.6"></div>Pending decision</div>
+      <div class="leg"><div class="leg-sw" style="background:var(--amber)"></div>On hold</div>
+      <div class="leg"><div class="leg-line"></div>T1 end</div>
+      <div class="leg"><div class="leg-t2l"></div>T2 start</div>
+      <div class="leg"><span style="background:#FFFBEB;color:#92400E;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid #FDE68A;">⚡</span>&nbsp;AI tools</div>
+    </div>
+  </div>
+
+  <div class="gantt-wrap" id="gantt-wrap">
+    <table id="gantt"></table>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="edit-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <div class="modal-title" id="edit-modal-title">Edit task</div>
+    <div class="field"><label>Task name</label><input type="text" id="edit-label" /></div>
+    <div class="field field-row">
+      <div><label>Start week</label><select id="edit-start"></select></div>
+      <div><label>End week</label><select id="edit-end"></select></div>
+    </div>
+    <div class="field"><label>Phase</label><div class="phase-picker" id="phase-picker"></div></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ai-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAIModal()">✕</button>
+    <div class="ai-tag">⚡ AI acceleration</div>
+    <div class="ai-modal-title" id="ai-title"></div>
+    <div id="ai-tools"></div>
+  </div>
+</div>
+
+<script>
+const WEEKS=[
+  {n:1,label:'W1',date:'Mar 20',t2:false},{n:2,label:'W2',date:'Mar 27',t2:false},
+  {n:3,label:'W3',date:'Apr 3',t2:false},{n:4,label:'W4',date:'Apr 10',t2:false},
+  {n:5,label:'W5',date:'Apr 17',t2:false},{n:6,label:'W6',date:'Apr 24',t2:false},
+  {n:7,label:'W7',date:'May 1',t2:false},{n:8,label:'W8',date:'May 8',t2:false},
+  {n:9,label:'W9',date:'May 15',t2:false},{n:10,label:'W10',date:'May 22',t2:false},
+  {n:11,label:'W11',date:'May 29',t2:false},{n:12,label:'W12',date:'Jun 5',t2:false},
+  {n:13,label:'W13',date:'Jun 12',t2:false},{n:14,label:'W14',date:'Jun 19',t2:false},
+  {n:15,label:'W15',date:'Jun 26',t2:false},{n:16,label:'W16',date:'Jul 3',t2:true},
+  {n:17,label:'W17',date:'Jul 10',t2:true},{n:18,label:'W18',date:'Jul 17',t2:true},
+  {n:19,label:'W19',date:'Jul 24',t2:true},{n:20,label:'W20',date:'Jul 31',t2:true},
+  {n:21,label:'W21',date:'Aug 7',t2:true},
+];
+const MONTHS=[
+  {label:'MARCH',span:2,t2:false},{label:'APRIL',span:4,t2:false},
+  {label:'MAY',span:5,t2:false},{label:'JUNE',span:4,t2:false},
+  {label:'T2 · JULY',span:5,t2:true},{label:'AUG',span:1,t2:true},
+];
+const T1=15,T2=16,NW=WEEKS.length;
+
+// Live date
+const _start=new Date(2026,2,20),_today=new Date();
+const _days=Math.floor((_today-_start)/86400000);
+const TODAY_WEEK=Math.max(1,Math.min(NW,Math.floor(_days/7)+1));
+const TODAY_STR=_today.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+const PHASES={
+  done:   {full:'#059669',light:'#D1FAE5',label:'Done',          filter:'p1'},
+  p1:     {full:'#2563EB',light:'#BFDBFE',label:'Phase 1',       filter:'p1'},
+  p2:     {full:'#7C3AED',light:'#DDD6FE',label:'Phase 2',       filter:'p2'},
+  p3:     {full:'#059669',light:'#A7F3D0',label:'Phase 3',       filter:'p3'},
+  pending:{full:'#DC2626',light:'#FEE2E2',label:'Pending',       filter:'p1'},
+  hold:   {full:'#D97706',light:'#FEF3C7',label:'On hold',       filter:'p1'},
+};
+
+const AI_DATA={
+  'ownership':{task:'Copy ownership model — align with Rod & Dominic',tools:[{pill:'pill-claude',name:'Claude',how:'Draft a one-page position paper on writer ownership of content experience — the BA/designer/writer analogy. Frame it as an organisational principle, not a tool rule. Gives Rod and Dominic something concrete to respond to.'}]},
+  'gov-model':{task:'Governance model — writer-less channels',tools:[{pill:'pill-claude',name:'Claude',how:'Draft governance options — content champion model, writer-as-governor, strict guardrails. Present as options with trade-offs so the decision can be made with context.'}]},
+  'pilot-synth':{task:'Nova pilot survey — synthesis',tools:[{pill:'pill-claude',name:'Claude',how:'Paste all survey responses. Ask Claude to extract themes, output quality signals, and gaps by copy type.'},{pill:'pill-figjam',name:'FigJam',how:'Map themes visually for sharing in the next writer session. FigJam AI can cluster stickies automatically.'}]},
+  'survey':{task:'UX designer survey (AI use)',tools:[{pill:'pill-claude',name:'Claude',how:'Paste all open-text responses and multiple choice summaries. Ask for themes, use case signals, governance gaps, and copy types most flagged — by squad where possible.'},{pill:'pill-figjam',name:'FigJam',how:'Import key quotes as stickies. Use FigJam AI to cluster by theme for sharing in Session 2.'},{pill:'pill-copilot',name:'Copilot',how:'If responses came via Microsoft Forms, use Copilot to summarise in Teams or Excel before deeper analysis.'}]},
+  'two-agent':{task:'Two-agent assessment',tools:[{pill:'pill-claude',name:'Claude',how:'Build the comparison framework first — define copy types to test, scoring criteria, and what good looks like. Makes the assessment objective.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'One of the agents being assessed. Run identical prompts in both Copilot and ChatGPT, score against the same rubric.'}]},
+  'channel-context':{task:'Channel context – App & Nova',tools:[{pill:'pill-copilot',name:'Copilot',how:'Read the existing Word master guide and surface key rules, gaps, and inconsistencies before the review with Nathan.'},{pill:'pill-claude',name:'Claude',how:'Once reviewed, paste content into Claude and ask it to extract and structure App-specific and Nova-specific rules in MD format.'}]},
+  'use-cases':{task:'Use cases + process map (v1)',tools:[{pill:'pill-claude',name:'Claude',how:'Feed all research into Claude. Ask for a structured first draft of use cases, escalation flow, and usage model. Stakeholders review and edit rather than build from scratch.'},{pill:'pill-figjam',name:'FigJam',how:'Build the visual process map collaboratively in FigJam. FigJam AI can tidy and cluster session inputs.'}]},
+  'high-stakes':{task:'High-stakes copy definition',tools:[{pill:'pill-claude',name:'Claude',how:'Share SME session notes. Ask Claude to produce a first draft of high-stakes copy criteria with examples. Writers validate.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'Cross-check by running the same prompt in ChatGPT — useful for stress-testing criteria and catching edge cases.'}]},
+  'tone-matrix':{task:'Tone matrix – product, journeys & segments',tools:[{pill:'pill-claude',name:'Claude',how:'Paste all source documents. Ask Claude to map the layers and draft the matrix by product area, journey, and segment. Writers refine the nuance.'},{pill:'pill-figjam',name:'FigJam',how:'Lay out the matrix visually in FigJam before converting to a document — useful for writer review sessions.'}]},
+  'nova-guidelines':{task:'Nova writing guidelines',tools:[{pill:'pill-claude',name:'Claude',how:'Share the App writing guidelines and ask Claude to generate a first-draft Nova equivalent. Ronnie adapts rather than builds from scratch.'},{pill:'pill-copilot',name:'Copilot',how:'Use Copilot to draft and refine in Word alongside Claude output.'}]},
+  'maze':{task:'Maze test templates',tools:[{pill:'pill-claude',name:'Claude',how:'Share Capitec brand guidelines and a sample Maze test. Ask Claude to draft welcome, task, and thank-you copy in the correct tone. This covers layer5-maze-test-copy.md — brand voice applied to research screens. The question quality rules (non-leading, plain language) live in a separate file: see Research & test playbook MD task.'},{pill:'pill-maze',name:'Maze',how:'Use built-in AI analysis to reduce post-test synthesis time.'},{pill:'pill-figma',name:'Figma',how:'Build screen templates as Figma frames. Use Figma AI to generate copy variations.'}]},
+  'visual-map':{task:'Visual logic map',tools:[{pill:'pill-figjam',name:'FigJam',how:'Build the Brand → Principles → Tone → Channel map in FigJam. FigJam AI can help structure and label nodes.'},{pill:'pill-figma',name:'Figma',how:'Convert the final map into a Figma frame for embedding in design files.'}]},
+  'assessment-tool':{task:'Assessment tool',tools:[{pill:'pill-claude',name:'Claude',how:'Share use cases and tone rules. Ask Claude to draft a scoring rubric with dimensions and pass/borderline/fail thresholds. Writers validate.'},{pill:'pill-figjam',name:'FigJam',how:'Run a collaborative scoring session with writers in FigJam before finalising in a document.'}]},
+  'assessment-auto':{task:'Assessment automation & dashboard',tools:[{pill:'pill-copilot',name:'Copilot Studio',how:'If the agent is Copilot-based, use built-in analytics to track usage and output quality.'},{pill:'pill-powerauto',name:'Power Automate',how:'Log scores passively when copy is generated — no designer action needed. Outputs to SharePoint or Teams.'},{pill:'pill-claude',name:'Claude',how:'Draft scoring prompt templates and automation logic before handing to engineering or Power Automate.'}]},
+  'good-bad':{task:'Good vs bad output examples',tools:[{pill:'pill-claude',name:'Claude',how:'For each use case, ask Claude to generate bad examples — wrong tone, too complex, off-brand. Writers correct them.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'Run the same prompt in ChatGPT for comparison — useful for catching edge cases.'}]},
+  'kb-maint':{task:'Knowledge base maintenance',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the maintenance process: review cadence, who reviews what, how changes are communicated.'},{pill:'pill-copilot',name:'Copilot',how:'If the KB lives in SharePoint, Copilot can surface relevant documents and flag stale content.'}]},
+  'onboarding':{task:'Designer onboarding to the agents',tools:[{pill:'pill-claude',name:'Claude',how:'Draft a lightweight one-pager covering when to use the agent, what to expect, and how to flag issues.'},{pill:'pill-figma',name:'Figma',how:'Design the onboarding guide as a Figma frame — visual, scannable, embeddable in design files.'}]},
+  'legal-layer':{task:'Legal & regulatory constraints — Layer 0',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the Layer 0 structure: locked disclosures (verbatim required text), prohibited phrases, POPIA/FSCA triggers, escalation rules. Give legal a structured template to fill in — they own the content, you own the structure. Do not ship the agent without this layer in place.'},{pill:'pill-copilot',name:'Copilot',how:'Use Copilot to cross-reference the existing compliance documentation in SharePoint. Flag gaps before the legal review.'}]},
+  'platform-decision':{task:'Platform decision — confirm Copilot Studio as T1 agent',tools:[{pill:'pill-claude',name:'Claude',how:'Build a one-page decision matrix: Copilot Studio vs Claude API vs ChatGPT — score on SharePoint integration, project memory support, designer access, assessment capability, governance controls, and cost. Use it to run the decision conversation with Andre, not to replace it.'},{pill:'pill-copilot',name:'Copilot Studio',how:'Run a minimal proof of concept: one system prompt, one SharePoint knowledge source, five test prompts. A working test is more convincing than a comparison doc.'}]},
+  'leon-onboard':{task:'Leon onboarding — technical partner alignment',tools:[{pill:'pill-claude',name:'Claude',how:'Draft a technical brief before the first meeting: what the agent needs to do, the 6-layer KB structure, SharePoint integration requirements, project memory requirement, Figma plugin scope. Gives Leon a concrete brief to work from, not a blank-slate conversation.'}]},
+  'agent-config':{task:'Agent configuration — system prompt + SharePoint KB integration',tools:[{pill:'pill-copilot',name:'Copilot Studio',how:'Configure the custom Copilot: system prompt loads Layers 0–3 and escalation rules always. SharePoint knowledge sources hold Layer 4 (channel) and Layer 5 (use case) files — retrieved automatically based on request. Configure conversation memory for project context persistence.'},{pill:'pill-claude',name:'Claude',how:'Draft and iterate the system prompt from your MD files. Test prompt variations — the exact wording significantly affects output quality and layer adherence. Do this before Leon builds the production config.'}]},
+  'kb-validation':{task:'Knowledge base load & retrieval validation',tools:[{pill:'pill-claude',name:'Claude',how:'Run a structured test set: 15–20 prompts covering every channel and use case combination. For each: check the agent applies the right layer rules, flags escalations correctly, and does not simplify locked legal text. Log failures — each one indicates a gap in a KB file, not the agent.'},{pill:'pill-copilot',name:'Copilot Studio',how:'Use the built-in test console to trace which SharePoint files were retrieved for each prompt. This confirms whether Layer 4/5 retrieval is working correctly or averaging across wrong files.'}]},
+  'designer-pilot':{task:'Structured designer pilot — 2–3 designers, real work',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the pilot brief first: which designers, which use cases, how to capture feedback, what a good vs borderline vs bad output looks like. Structured pilots produce decisions; unstructured ones produce opinions.'},{pill:'pill-maze',name:'Maze',how:'If pilot includes Maze test copy, run a before/after comparison — copy written without the agent vs copy written with it. Gives a quantitative quality signal to share with stakeholders.'}]},
+  'prompting-guide':{task:'Designer prompting guide — how to get the best from the agent',tools:[{pill:'pill-claude',name:'Claude',how:'Build the guide from real pilot data: feed Claude 10–15 prompt examples from the pilot. Ask it to identify patterns that produce good output vs vague or off-brand output. The guide must come from evidence, not theory — one page, not a manual.'},{pill:'pill-figma',name:'Figma',how:'Design the guide as a Figma frame: visual, scannable, embeddable into onboarding files. Include: when to use the agent, what to include in your prompt (channel, use case, brief), what to check in the output, when to escalate.'}]},
+  'tool-training':{task:'Prompting skills session — how to use and prompt the agent',tools:[{pill:'pill-figjam',name:'FigJam',how:'Run the session in FigJam. Include a live demo, a 10-minute practice exercise with real copy tasks, and a Q+A board. FigJam AI can cluster participant questions after.'},{pill:'pill-claude',name:'Claude',how:'Build the session script and practice exercises from the prompting guide. Use before/after examples from the pilot — concrete evidence lands better than principles.'}]},
+  'cap-fundamentals':{task:'Capitec fundamentals MD — retrieve and align',tools:[{pill:'pill-copilot',name:'Copilot',how:'Ask Copilot to search SharePoint for the Capitec fundamentals document. If it exists as Word or PDF, Copilot can summarise the key principles and flag gaps before the review with Nathan.'},{pill:'pill-claude',name:'Claude',how:'Once you have the source document, paste it into Claude and ask it to extract the key brand voice principles and convert them into MD format, structured for Layers 1 and 2 of the knowledge base.'}]},
+  'serv-principles':{task:'Servicing principles — retrieve MD and review',tools:[{pill:'pill-copilot',name:'Copilot',how:'Search SharePoint for the servicing principles document. Ask Copilot to summarise it and flag whether the CX version and brand version align before pulling it into the KB.'},{pill:'pill-claude',name:'Claude',how:'Paste the retrieved content into Claude. Ask it to: (1) extract the core servicing principles, (2) translate them into tone guidance per emotional moment, (3) format for Layer 2 of the knowledge base.'}]},
+  'segments':{task:'Client segments / personas / mental models — investigate',tools:[{pill:'pill-claude',name:'Claude',how:'Paste existing research artefacts — CX segmentation docs, NPS verbatims, journey maps. Ask Claude to extract what each segment needs from copy: reading level, trust signals, what creates confusion. Format as context input for Layers 3–5.'},{pill:'pill-figjam',name:'FigJam',how:'Map segments visually before consolidating into a document. FigJam AI can cluster existing research stickies by theme.'}]},
+  'error-msg':{task:'Error messages tone & principles',tools:[{pill:'pill-claude',name:'Claude',how:'Feed Claude existing error message examples (good and bad). Ask it to extract tone patterns and formulate principles — problem + next step structure, no blame, plain language. Writers validate. Then ask Claude to format as a Layer 5 MD file.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'Run the same examples through ChatGPT as a cross-check — useful for surfacing principles your internal review might miss.'}]},
+  'rod-dom-session':{task:'Schedule alignment session — Rod & Dominic',tools:[{pill:'pill-claude',name:'Claude',how:'Draft a one-page pre-read for Rod and Dominic: the writer ownership model, the three pending decisions, and what happens if each is left unresolved. Give them something concrete to respond to — a blank conversation rarely produces decisions.'}]},
+  'feedback-loop':{task:'Feedback loop — output flagging',tools:[{pill:'pill-powerauto',name:'Power Automate',how:'Build a lightweight flagging flow: when a designer marks copy as "not right", it logs the prompt, output, and flag reason to a SharePoint list. One click — no form-filling. Writers review the log on a cadence.'},{pill:'pill-claude',name:'Claude',how:'Draft the flagging logic first: what categories of bad output exist, what data to capture, and what the writer review process looks like. Define this before building the automation.'}]},
+  'escalation-review':{task:'Escalation review process',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the escalation SLA: what gets reviewed, by whom, within what timeframe, and what happens if not reviewed in time. Include the Figma comment sign-off convention as the audit trail. Writers validate the thresholds.'}]},
+  'writer-gov':{task:'Writer governance cadence',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the governance schedule: monthly KB review, quarterly full audit, trigger-based updates (new product, channel change, legal update). Define who reviews what and what the output of each session is. Writers own this — Claude drafts the structure.'}]},
+  'stakeholder-report':{task:'Stakeholder reporting cadence',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the reporting template: usage metrics, quality trend, escalation volume, KB update log. Define audience (Rod, Dominic, Andre, design leads) and format. Build the template once the metrics are defined.'},{pill:'pill-powerauto',name:'Power Automate',how:'Automate data collection from Copilot Studio analytics and the flagging log into a SharePoint report. Writers present the summary — data collection is automatic.'}]},
+  'md-auto':{task:'MD automation — central MD files',tools:[{pill:'pill-powerauto',name:'Power Automate',how:'Build a flow: when a writer updates a SharePoint MD file, it syncs to the Copilot Studio knowledge source and logs the change with timestamp and author. Writers edit once, agent updates automatically.'},{pill:'pill-claude',name:'Claude',how:'Design the file naming convention and folder structure for the central SharePoint KB before building the automation. A well-structured KB is easier to maintain and easier for Copilot to retrieve from accurately.'}]},
+  'figma-plugin':{task:'Figma plugin — copy assessment layer',tools:[{pill:'pill-figma',name:'Figma',how:'The plugin reads copy from the active Figma frame and sends it to the same Copilot/Claude backend used by the writing agent. Three layered checks run in order: UI (character limits, truncation risk), UX (clarity, action orientation), Copy (brand voice, tone, principles). Results appear in the plugin panel with severity flags.'},{pill:'pill-claude',name:'Claude',how:'Draft the assessment prompt templates before Leon builds the plugin. Each check layer needs a clear rubric — what passes, what flags, what fails. Claude can help you define these from your MD files so the plugin and the writing agent apply identical standards.'},{pill:'pill-powerauto',name:'Power Automate',how:'When the plugin flags a REVIEW REQUIRED issue, it triggers the same Power Automate escalation flow as the writing agent — Teams message to writer, confirmation to designer. One shared escalation mechanism for both tools.'}]},
+  'escalation-auto':{task:'Escalation automation — Power Automate (both tools)',tools:[{pill:'pill-powerauto',name:'Power Automate',how:'One flow, triggered by both tools. When either the writing agent or the Figma plugin outputs REVIEW REQUIRED: (1) sends a Teams message to the relevant writer with context — designer name, channel, use case, reason flagged; (2) sends a confirmation to the designer that the writer has been notified; (3) logs the escalation to SharePoint. No manual action from anyone.'},{pill:'pill-claude',name:'Claude',how:'Draft the message templates for the escalation notifications before Leon builds the flow. The writer message and designer confirmation both need to be clear, brief, and actionable — Claude can draft these from your escalation rules.'}]},
+  'md-review-trigger':{task:'MD review trigger — automated KB maintenance alerts',tools:[{pill:'pill-powerauto',name:'Power Automate',how:'Each MD file has a metadata block: Last updated, Next review date, Owner. Power Automate monitors the SharePoint folder. 7 days before the review date it messages the named owner in Teams. If not actioned within 14 days, it escalates to the manager. Default review cadence: 3 months.'},{pill:'pill-claude',name:'Claude',how:'Draft the metadata block template for MD files and the message copy for the review notifications. The owner message and escalation message both need to be short and clear about what action is needed.'}]},
+  'research-playbook':{task:'Research & test playbook MD — non-leading, plain language questions',tools:[{pill:'pill-claude',name:'Claude',how:'Feed Claude your existing research guidelines and examples of good vs bad questions. Ask it to: (1) extract principles (non-leading, plain language, one idea per question), (2) build a question quality checklist, (3) draft rewrites from leading to neutral. Writers validate the bias rules — these require research methodology knowledge, not just writing style.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'Run draft survey questions through ChatGPT and ask it to flag leading language, double-barrelled questions, and jargon. Use as a second check before writer review.'},{pill:'pill-maze',name:'Maze',how:'Reference Maze best practice guidance when drafting task instruction and welcome copy rules. Maze has built-in templates for test copy structure.'}]},
+  'layer3-craft':{task:'Layer 3 — writing principles + tone guidance',tools:[{pill:'pill-claude',name:'Claude',how:'Draft the Layer 3 file in two sections: (1) Writing principles — clarity, brevity, active voice, plain language, one idea per sentence, with examples of each; (2) Tone guidance — four emotional states with rules and a good/bad example each: error/failure, success/completion, instructional/neutral, sensitive/urgent. Writers validate. This replaces the full tone matrix for T1 — simpler, faster to build, and more reliably applied by the agent.'},{pill:'pill-chatgpt',name:'ChatGPT',how:'Cross-check the tone guidance examples — run the same four emotional moment scenarios through ChatGPT and compare output against your principles. Useful for stress-testing before writers sign off.'}]},
+};
+
+// Data — three sections, tasks sorted: in-progress first, not started next, done last
+let tid=0;
+function T(label,start,end,phase,dot,aiKey=null){return{id:++tid,label,start,end,phase,origPhase:phase,dot,aiKey};}
+
+// ── Persistence ───────────────────────────────────────────────────
+const STORAGE_KEY='ai-timeline-v3'; // bump to clear old saved state
+function saveState(){
+  const state={_saved:new Date().toISOString()};
+  sections.forEach(s=>s.tasks.forEach(t=>{
+    // Save dot (status) and bar positions only — phase is immutable and set in code
+    state[t.id]={dot:t.dot,start:t.start,end:t.end,label:t.label};
+  }));
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  const el=document.getElementById('save-chip');
+  if(el){
+    const now=new Date();
+    el.textContent='Saved '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    el.style.opacity='1';
+    setTimeout(()=>{el.style.opacity='0.5';},2000);
+  }
+}
+function loadState(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw)return;
+  try{
+    const state=JSON.parse(raw);
+    sections.forEach(s=>s.tasks.forEach(t=>{
+      if(state[t.id]){
+        t.dot  = state[t.id].dot   || t.dot;
+        t.start= state[t.id].start || t.start;
+        t.end  = state[t.id].end   || t.end;
+        t.label= state[t.id].label || t.label;
+        // phase intentionally NOT restored — always use the value set in code
+      }
+    }));
+  }catch(e){}
+}
+
+// ── Status cycling ─────────────────────────────────────────────────
+// Cycle: not started → in progress → done → not started
+// Hold is set separately — it does not cycle through automatically
+function cycleStatus(taskId,btnEl){
+  const task=findTask(taskId);if(!task)return;
+  // phase never changes — only dot changes. Bar color is derived from dot in renderTaskRow.
+  const cycle={none:'prog',prog:'done',done:'none',hold:'none'};
+  task.dot=cycle[task.dot]||'none';
+  if(btnEl){btnEl.classList.remove('pulsed');void btnEl.offsetWidth;btnEl.classList.add('pulsed');}
+  saveState();sortAllSections();renderAll();
+}
+
+function setHold(taskId){
+  const task=findTask(taskId);if(!task)return;
+  task.dot='hold';
+  saveState();sortAllSections();renderAll();
+}
+
+// ── Sort in-place — guaranteed to affect rendering ─────────────────
+const DOT_ORDER={prog:0,none:1,pending:1,hold:2,done:3};
+function sortAllSections(){
+  sections.forEach(s=>{
+    s.tasks.sort((a,b)=>(DOT_ORDER[a.dot]||1)-(DOT_ORDER[b.dot]||1));
+  });
+}
+// Keep alias for renderAll call
+function sortedTasks(tasks){ return tasks; } // already sorted in-place
+
+const sections=[
+  {id:'s1',title:'Phase 1 — Foundation',cls:'s-p1',filter:'p1',tasks:[
+    // In progress
+    T('Copilot agent pilot (Nova)',                        1,2,'p1','prog'),
+    T('Nova pilot survey',                                1,2,'p1','prog','pilot-synth'),
+    T('UX designer survey (AI use)',                      1,4,'p1','prog','survey'),
+    T('Two-agent assessment — superseded by platform decision',1,5,'p1','done','two-agent'),
+    T('Use cases + process map (v1)',                     5,7,'p1','prog','use-cases'),
+    // Not started
+    T('Copy ownership model — align with Rod & Dominic',  1,3,'pending','none','ownership'),
+    T('Layer 1 — review & validate Nathan\'s existing brand layer',1,2,'p1','none','cap-fundamentals'),
+    T('Layer 2 — sense-check Nathan\'s servicing content (exists, needs validation)',2,3,'p1','none','serv-principles'),
+    T('Client segments / personas / mental models — out of T1 scope', 3,5,'p1','hold','segments'),
+    T('Channel context – App & Nova',                     2,4,'p1','none','channel-context'),
+    T('Error messages tone & principles',                 2,3,'p1','none','error-msg'),
+    T('High-stakes copy definition',                      3,5,'p1','none','high-stakes'),
+    T('Layer 3 — writing principles + tone guidance',      2,5,'p1','none','layer3-craft'),
+    T('Nova writing guidelines',                          3,7,'p1','none','nova-guidelines'),
+    T('Visual logic map — nice to have, not a blocker',   7,9,'p1','hold','visual-map'),
+    T('Layer 0 — review & validate Nathan\'s existing legal layer', 3,5,'p1','none','legal-layer'),
+    T('Platform decision — Copilot Studio confirmed',     3,4,'p1','done','platform-decision'),
+    T('Schedule alignment session — Rod & Dominic',       2,3,'pending','none','rod-dom-session'),
+    // Done
+    T('App writing guidelines (MD)',                      1,1,'done','done'),
+    T('UX writers\' workshop (SMEs)',                     1,1,'done','done'),
+    T('Writer SME session + synthesis',                   1,1,'done','done'),
+  ]},
+  {id:'s2',title:'Phase 2 — Build',cls:'s-p2',filter:'p2',tasks:[
+    T('Assessment tool',                         7,9, 'p2',     'none','assessment-tool'),
+    T('Governance model — writer-less channels', 8,10,'pending','none','gov-model'),
+    T('Assessment automation & dashboard',       9,14,'pending','none','assessment-auto'),
+    T('Good vs bad examples — embed one per use case file', 9,11,'p2','none','good-bad'),
+    T('Maze test copy — welcome, task instructions, thank-you', 12,14,'p2','none','maze'),
+    T('Tool architecture map — writing agent, assessment plugin, copy extraction', 7,8,'p2','none','leon-onboard'),
+    T('Leon onboarding — technical partner alignment', 7,8, 'p2','none','leon-onboard'),
+    T('Agent configuration — system prompt + SharePoint KB', 9,12,'p2','none','agent-config'),
+    T('Knowledge base load & retrieval validation',   11,13,'p2','none','kb-validation'),
+    T('Structured designer pilot — 2–3 designers',   13,15,'p2','none','designer-pilot'),
+    T('Designer prompting guide',                    13,15,'p2','none','prompting-guide'),
+    T('Figma plugin — copy assessment layer',         9,13,'p2','none','figma-plugin'),
+    T('Escalation automation — Copilot Studio triggers (Nathan leading)', 11,13,'p2','none','escalation-auto'),
+    T('MD review trigger — automated KB alerts',      13,14,'p2','none','md-review-trigger'),
+  ]},
+  {id:'s3',title:'Phase 3 — Embed',cls:'s-p3',filter:'p3',t2:true,tasks:[
+    T('Designer onboarding to the agents', 16,18,'p3','none','onboarding'),
+    T('Feedback loop – output flagging',   16,18,'p3','none','feedback-loop'),
+    T('Escalation review process',         16,17,'p3','none','escalation-review'),
+    T('Writer governance cadence',         17,19,'p3','none','writer-gov'),
+    T('Knowledge base maintenance',        17,19,'p3','none','kb-maint'),
+    T('Stakeholder reporting cadence',     19,21,'p3','none','stakeholder-report'),
+    T('MD automation – central MD files',  19,21,'p3','none','md-auto'),
+    T('Prompting skills session — how to use & prompt the agent', 16,17,'p3','none','tool-training'),
+  ]},
+];
+
+function taskFlag(t){
+  if(t.dot==='done'||t.dot==='prog') return null;
+  if(t.start>T1) return null;
+  if(t.start<=TODAY_WEEK) return 'late';
+  if(t.start===TODAY_WEEK+1) return 'now';
+  if(t.start===TODAY_WEEK+2) return 'soon';
+  return null;
+}
+function findTask(id){for(const s of sections){const t=s.tasks.find(t=>t.id===id);if(t)return t;}return null;}
+function allTasks(){return sections.flatMap(s=>s.tasks);}
+
+let currentFilter='all', hideDone=false;
+const table=document.getElementById('gantt');
+
+function renderTopbar(){
+  let late=0,now=0;
+  allTasks().forEach(t=>{const f=taskFlag(t);if(f==='late')late++;else if(f==='now')now++;});
+  const sb=document.getElementById('topbar-status');
+  sb.innerHTML=
+    `<div class="tb-chip tb-date">📅 ${TODAY_STR} · W${TODAY_WEEK} of 15</div>`+
+    (late?`<div class="tb-chip tb-late">⚠ ${late} overdue</div>`:'')+
+    (now?`<div class="tb-chip tb-now">! ${now} starting soon</div>`:'')+
+    (!late&&!now?`<div class="tb-chip tb-good">✓ On track</div>`:'')+
+    `<button class="ctx-toggle" onclick="toggleCtx()" id="ctx-btn">Context ▾</button>`;
+}
+
+function renderPhaseStats(){
+  const c=document.getElementById('phase-stats'); c.innerHTML='';
+  [{key:'p1',label:'Phase 1',color:'#2563EB'},{key:'p2',label:'Phase 2',color:'#7C3AED'},{key:'p3',label:'Phase 3',color:'#059669'}]
+  .forEach(d=>{
+    const ts=sections.filter(s=>s.filter===d.key).flatMap(s=>s.tasks);
+    const done=ts.filter(t=>t.dot==='done').length;
+    const prog=ts.filter(t=>t.dot==='prog').length;
+    const hold=ts.filter(t=>t.dot==='hold').length;
+    const total=ts.length;
+    const pct=total?Math.round(((done+prog*0.5)/total)*100):0;
+    const holdText=hold?` · ${hold} on hold`:'';
+    const el=document.createElement('div');
+    el.className='phase-stat'+(currentFilter===d.key?' active':'');
+    el.onclick=()=>setFilter(d.key);
+    el.innerHTML=`<div class="ps-dot" style="background:${d.color}"></div><div class="ps-info"><div class="ps-label">${d.label}</div><div class="ps-count">${done} done · ${prog} active${holdText} · ${total} total</div></div><div class="ps-bar"><div class="ps-fill" style="width:${pct}%;background:${d.color}"></div></div>`;
+    c.appendChild(el);
+  });
+}
+
+function setFilter(f){
+  currentFilter=f;
+  document.querySelectorAll('.ft').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderAll();
+}
+document.getElementById('filter-tabs').addEventListener('click',e=>{
+  const b=e.target.closest('.ft');if(b)setFilter(b.dataset.filter);
+});
+
+function toggleHideDone(){
+  hideDone=!hideDone;
+  document.getElementById('gantt-wrap').classList.toggle('hide-done',hideDone);
+  const btn=document.getElementById('hide-btn');
+  btn.classList.toggle('active',hideDone);
+  document.getElementById('hide-icon').textContent=hideDone?'●':'○';
+  btn.childNodes[1].textContent=hideDone?' Show completed':' Hide completed';
+}
+
+function renderAll(){
+  table.innerHTML='';
+  renderTopbar();
+  renderPhaseStats();
+
+  // Month row
+  const mr=table.insertRow();mr.className='month-row';
+  const mlc=document.createElement('th');mlc.className='lc';mlc.textContent='Work item';mr.appendChild(mlc);
+  MONTHS.forEach(m=>{const th=document.createElement('th');th.colSpan=m.span;th.textContent=m.label;if(m.t2)th.className='t2m';mr.appendChild(th);});
+
+  // Week row
+  const wr=table.insertRow();wr.className='week-row';
+  const wlc=document.createElement('th');wlc.className='lc';wr.appendChild(wlc);
+  WEEKS.forEach(w=>{
+    const th=document.createElement('th');th.dataset.week=w.n;
+    if(w.n===TODAY_WEEK&&!w.t2){
+      th.style.cssText='background:#FFFBEB;border-left:2px solid #D97706;border-right:2px solid #D97706;';
+      th.innerHTML=`${w.label}<br><span style="font-size:8px;color:#D97706;font-weight:800">Today</span>`;
+    } else {
+      th.innerHTML=`${w.label}<br><span style="font-size:8px;color:#CBD5E1">${w.date}</span>`;
+    }
+    if(w.n===T1)th.className='t1h';
+    else if(w.n===T2)th.style.cssText='border-left:2px solid #D97706;';
+    if(w.t2)th.classList.add('t2w');
+    wr.appendChild(th);
+  });
+
+  // Marker row
+  const mkr=table.insertRow();mkr.className='mark-row';
+  const mklc=mkr.insertCell();mklc.className='lc';
+  WEEKS.forEach(w=>{
+    const td=mkr.insertCell();
+    if(w.n===T1){td.className='t1m';td.textContent='T1 END';}
+    else if(w.n===T2){td.className='t2m';td.textContent='T2';}
+    else if(w.n===TODAY_WEEK){td.style.cssText='background:rgba(217,119,6,0.08);border-left:2px solid #D97706;border-right:2px solid #D97706;color:#D97706;font-size:10px;text-align:center;font-weight:800;';td.textContent='◆';}
+    else if(w.t2){td.className='t2b';}
+  });
+
+  // Sections
+  sections.forEach(sec=>{
+    if(currentFilter!=='all'&&sec.filter!==currentFilter) return;
+    const sr=table.insertRow();sr.className=`sec-row ${sec.cls}`;
+    const stc=sr.insertCell();stc.className='lc';stc.colSpan=NW+1;
+    const done=sec.tasks.filter(t=>t.dot==='done').length;
+    const prog=sec.tasks.filter(t=>t.dot==='prog').length;
+    stc.innerHTML=`${sec.title} <span style="font-size:10px;font-weight:500;opacity:0.55;letter-spacing:0;text-transform:none;margin-left:10px;">${done} done · ${prog} active · ${sec.tasks.length} total</span>`;
+    sortedTasks(sec.tasks).forEach(task=>renderTaskRow(task));
+    const ar=table.insertRow();ar.className='add-row';
+    const atd=ar.insertCell();atd.colSpan=NW+1;
+    const ab=document.createElement('span');ab.className='add-btn';ab.textContent='+ Add task';
+    ab.onclick=()=>openAddModal(sec.id);atd.appendChild(ab);
+  });
+}
+
+function renderTaskRow(task){
+  const tr=table.insertRow();tr.className='task-row';tr.dataset.taskId=task.id;
+  const flag=taskFlag(task);
+  if(flag)tr.classList.add(`fl-${flag}`);
+  if(task.dot==='done')tr.classList.add('is-done');
+  if(task.dot==='hold')tr.classList.add('is-hold');
+
+  const lc=tr.insertCell();
+  lc.className='lc'+((task.dot==='done'||task.dot==='hold')?' dim':'');
+  const inner=document.createElement('div');inner.className='label-inner';
+  // Status pill — always visible, shows current status, click to cycle
+  const pill=document.createElement('span');
+  const pillLabels={none:'Not started',prog:'In progress',done:'Done',hold:'On hold'};
+  const pillNext={none:'→ In progress',prog:'→ Mark done',done:'→ Reset',hold:'→ Remove hold'};
+  pill.className=`status-pill sp-${task.dot}`;
+  pill.title=`${pillLabels[task.dot]||'Unknown'} — click to set: ${pillNext[task.dot]||'cycle'}`;
+  const pillDot=document.createElement('span');pillDot.className='sp-dot';pill.appendChild(pillDot);
+  const pillTxt=document.createElement('span');pillTxt.textContent=pillLabels[task.dot]||task.dot;pill.appendChild(pillTxt);
+  pill.onclick=e=>{e.stopPropagation();e.preventDefault();cycleStatus(task.id,pill);};
+  inner.appendChild(pill);
+
+  // Undo hold — visible only when on hold
+  const undoBtn=document.createElement('button');
+  undoBtn.className='undo-hold';undoBtn.innerHTML='↩ Remove hold';undoBtn.title='Remove hold and reset to not started';
+  undoBtn.onclick=e=>{e.stopPropagation();const t=findTask(task.id);if(t){t.dot='none';saveState();sortAllSections();renderAll();}};
+  inner.appendChild(undoBtn);
+  const txt=document.createElement('span');
+  txt.className='label-text';txt.textContent=task.label;
+  txt.title='Double-click to edit';
+  txt.style.cursor='text';
+  txt.ondblclick=e=>{e.stopPropagation();openEditModal(task.id);};
+  inner.appendChild(txt);
+  if(task.aiKey){
+    const b=document.createElement('span');b.className='ai-badge';b.textContent='⚡ AI';
+    b.onclick=e=>{e.stopPropagation();openAIModal(task.aiKey);};inner.appendChild(b);
+  }
+  if(flag){
+    const fb=document.createElement('span');fb.className='row-flag';
+    fb.textContent=flag==='late'?'⚠':flag==='now'?'!':'→';inner.appendChild(fb);
+  }
+  const acts=document.createElement('div');acts.className='row-actions';
+  const eb=document.createElement('button');eb.className='row-btn';eb.textContent='✏';eb.title='Edit task';eb.onclick=e=>{e.stopPropagation();openEditModal(task.id);};acts.appendChild(eb);
+  if(task.dot!=='hold'&&task.dot!=='done'){
+    const hb=document.createElement('button');hb.className='row-btn';hb.textContent='⏸';hb.title='Put on hold';hb.style.color='var(--amber)';hb.onclick=e=>{e.stopPropagation();setHold(task.id);};acts.appendChild(hb);
+  }
+  const db=document.createElement('button');db.className='row-btn del';db.textContent='✕';db.title='Remove task';db.onclick=e=>{e.stopPropagation();deleteTask(task.id);};acts.appendChild(db);
+  inner.appendChild(acts);
+  lc.appendChild(inner);
+
+  // Bar colour: override with dot status for done/hold, otherwise use assigned phase
+  const barKey = task.dot==='done' ? 'done' : task.dot==='hold' ? 'hold' : task.phase;
+  const phase = PHASES[barKey] || PHASES.p1;
+  const isSolo=task.start===task.end;
+  WEEKS.forEach(w=>{
+    const td=tr.insertCell();
+    let cls='wc';
+    if(w.n===T1)cls+=' t1c';
+    else if(w.n===T2)cls+=' t2f';
+    else if(w.t2)cls+=' t2c';
+    else if(w.n===TODAY_WEEK)cls+=' today-wc';
+    td.className=cls;td.dataset.week=w.n;
+    if(w.n>=task.start&&w.n<=task.end){
+      const isS=w.n===task.start,isE=w.n===task.end;
+      const wrap=document.createElement('div');wrap.className='bar-wrap'+(isSolo?' bar-solo':'');
+      const fill=document.createElement('div');fill.className='bar-fill';
+      fill.style.background=isS?phase.full:phase.light;
+      if(isSolo)fill.style.borderRadius='5px';
+      else if(isS)fill.style.borderRadius='5px 0 0 5px';
+      else if(isE)fill.style.borderRadius='0 5px 5px 0';
+      else fill.style.borderRadius='0';
+      wrap.appendChild(fill);
+      if(!isSolo){
+        if(isS){const hl=document.createElement('div');hl.className='bar-handle hl';hl.onmousedown=e=>{e.stopPropagation();startDrag(e,task.id,'left');};wrap.appendChild(hl);}
+        if(isE){const hr=document.createElement('div');hr.className='bar-handle hr';hr.onmousedown=e=>{e.stopPropagation();startDrag(e,task.id,'right');};wrap.appendChild(hr);}
+      }
+      const mid=document.createElement('div');mid.className='bar-mid';
+      mid.onmousedown=e=>{e.stopPropagation();startDrag(e,task.id,'move');};
+      wrap.appendChild(mid);
+      td.appendChild(wrap);
+    }
+  });
+}
+
+// Drag
+let drag=null;
+function getWeekFromX(x){const cells=document.querySelectorAll('.week-row th[data-week]');for(const c of cells){const r=c.getBoundingClientRect();if(x>=r.left&&x<=r.right)return parseInt(c.dataset.week);}return TODAY_WEEK;}
+function startDrag(e,taskId,type){e.preventDefault();const task=findTask(taskId);drag={taskId,type,startWeek:getWeekFromX(e.clientX),origStart:task.start,origEnd:task.end,duration:task.end-task.start};document.body.style.cursor=type==='move'?'grabbing':'ew-resize';}
+function updateBarDOM(taskId,ns,ne){
+  const row=document.querySelector(`tr[data-task-id="${taskId}"]`);if(!row)return;
+  const task=findTask(taskId);const phase=PHASES[task.phase];const isSolo=ns===ne;
+  row.querySelectorAll('td.wc').forEach(td=>{
+    const wn=parseInt(td.dataset.week);td.innerHTML='';
+    if(wn>=ns&&wn<=ne){
+      const isS=wn===ns,isE=wn===ne;
+      const wrap=document.createElement('div');wrap.className='bar-wrap dragging'+(isSolo?' bar-solo':'');
+      const fill=document.createElement('div');fill.className='bar-fill';fill.style.background=isS?phase.full:phase.light;
+      if(isSolo)fill.style.borderRadius='5px';else if(isS)fill.style.borderRadius='5px 0 0 5px';else if(isE)fill.style.borderRadius='0 5px 5px 0';else fill.style.borderRadius='0';
+      wrap.appendChild(fill);td.appendChild(wrap);
+    }
+  });
+}
+document.addEventListener('mousemove',e=>{
+  if(!drag)return;
+  const cw=getWeekFromX(e.clientX),delta=cw-drag.startWeek;
+  let ns=drag.origStart,ne=drag.origEnd;
+  if(drag.type==='move'){ns=Math.max(1,Math.min(NW-drag.duration,drag.origStart+delta));ne=ns+drag.duration;}
+  else if(drag.type==='right'){ne=Math.max(drag.origStart,Math.min(NW,drag.origEnd+delta));}
+  else if(drag.type==='left'){ns=Math.max(1,Math.min(drag.origEnd,drag.origStart+delta));}
+  updateBarDOM(drag.taskId,ns,ne);
+});
+document.addEventListener('mouseup',e=>{
+  if(!drag)return;
+  const cw=getWeekFromX(e.clientX),delta=cw-drag.startWeek;
+  const task=findTask(drag.taskId);
+  if(drag.type==='move'){task.start=Math.max(1,Math.min(NW-drag.duration,drag.origStart+delta));task.end=task.start+drag.duration;}
+  else if(drag.type==='right'){task.end=Math.max(task.start,Math.min(NW,drag.origEnd+delta));}
+  else if(drag.type==='left'){task.start=Math.max(1,Math.min(task.end,drag.origStart+delta));}
+  drag=null;document.body.style.cursor='';saveState();renderAll();
+});
+
+// Context toggle
+let ctxOpen=true;
+function toggleCtx(){
+  ctxOpen=!ctxOpen;
+  document.getElementById('ctx-panel').classList.toggle('collapsed',!ctxOpen);
+  document.getElementById('ctx-btn').textContent=ctxOpen?'Context ▾':'Context ▸';
+}
+
+// Edit modal
+let editingId=null,addingToSection=null;
+function populateWeekSelects(sv,ev){
+  const ss=document.getElementById('edit-start'),es=document.getElementById('edit-end');
+  ss.innerHTML='';es.innerHTML='';
+  WEEKS.forEach(w=>{
+    const o1=new Option(`${w.label} (${w.date})`,w.n),o2=new Option(`${w.label} (${w.date})`,w.n);
+    if(w.n===sv)o1.selected=true;if(w.n===ev)o2.selected=true;
+    ss.appendChild(o1);es.appendChild(o2);
+  });
+}
+function buildPhasePicker(sel){
+  const p=document.getElementById('phase-picker');p.innerHTML='';
+  Object.entries(PHASES).forEach(([k,ph])=>{
+    const o=document.createElement('div');o.className='phase-opt'+(k===sel?' selected':'');o.dataset.phase=k;
+    o.innerHTML=`<span class="phase-dot" style="background:${ph.full}"></span>${ph.label}`;
+    o.onclick=()=>{p.querySelectorAll('.phase-opt').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');};
+    p.appendChild(o);
+  });
+}
+function openEditModal(taskId){
+  const task=findTask(taskId);
+  if(!task){console.warn('openEditModal: task not found',taskId);return;}
+  editingId=taskId;addingToSection=null;
+  document.getElementById('edit-modal-title').textContent='Edit task';
+  document.getElementById('edit-label').value=task.label;
+  populateWeekSelects(task.start,task.end);buildPhasePicker(task.phase);
+  document.getElementById('edit-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('edit-label').focus(),50);
+}
+function openAddModal(sid){
+  editingId=null;addingToSection=sid;
+  document.getElementById('edit-modal-title').textContent='Add task';
+  document.getElementById('edit-label').value='';
+  populateWeekSelects(TODAY_WEEK,TODAY_WEEK+1);buildPhasePicker('p1');
+  document.getElementById('edit-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('edit-label').focus(),50);
+}
+function closeEditModal(){document.getElementById('edit-overlay').classList.remove('open');editingId=null;addingToSection=null;}
+function saveEdit(){
+  const label=document.getElementById('edit-label').value.trim();if(!label)return;
+  const start=parseInt(document.getElementById('edit-start').value);
+  const end=parseInt(document.getElementById('edit-end').value);
+  const phase=document.querySelector('.phase-opt.selected')?.dataset.phase||'p1';
+  const ns=Math.min(start,end),ne=Math.max(start,end);
+  if(editingId){const t=findTask(editingId);t.label=label;t.start=ns;t.end=ne;t.phase=phase;}
+  else if(addingToSection){const s=sections.find(s=>s.id===addingToSection);if(s)s.tasks.push(T(label,ns,ne,phase,'none'));}
+  closeEditModal();saveState();renderAll();
+}
+document.getElementById('edit-label').addEventListener('keydown',e=>{if(e.key==='Enter')saveEdit();if(e.key==='Escape')closeEditModal();});
+
+function deleteTask(taskId){for(const s of sections){const i=s.tasks.findIndex(t=>t.id===taskId);if(i!==-1){s.tasks.splice(i,1);break;}}saveState();renderAll();}
+function resetState(){if(!confirm('Reset all changes and return to the original timeline?'))return;localStorage.removeItem(STORAGE_KEY);location.reload();}
+
+// AI modal
+function openAIModal(key){
+  const data=AI_DATA[key];if(!data)return;
+  document.getElementById('ai-title').textContent=data.task;
+  const el=document.getElementById('ai-tools');el.innerHTML='';
+  data.tools.forEach(t=>{const d=document.createElement('div');d.className='ai-tool';d.innerHTML=`<span class="tool-pill ${t.pill}">${t.name}</span><span class="tool-how">${t.how}</span>`;el.appendChild(d);});
+  document.getElementById('ai-overlay').classList.add('open');
+}
+function closeAIModal(){document.getElementById('ai-overlay').classList.remove('open');}
+document.getElementById('edit-overlay').addEventListener('click',e=>{if(e.target.id==='edit-overlay')closeEditModal();});
+document.getElementById('ai-overlay').addEventListener('click',e=>{if(e.target.id==='ai-overlay')closeAIModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEditModal();closeAIModal();}});
+
+loadState();
+sortAllSections();
+renderTopbar();
+renderAll();
+// Show last saved time on load
+const _saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')._saved;
+const chip=document.getElementById('save-chip');
+if(chip&&_saved){
+  const d=new Date(_saved);
+  chip.textContent='Last saved '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  chip.style.opacity='0.5';
+}
+</script>
+</body>
+</html>
